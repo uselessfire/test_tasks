@@ -6,6 +6,7 @@ from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import Union, Optional, Tuple
 
+import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch, Ellipse, Rectangle, Circle
 
@@ -35,14 +36,16 @@ class AbstractPlotter(ABC):
     def do_output(self):
         assert self.plotted_data
 
+        if self.output_type == 'console':
+            matplotlib.use('module://drawilleplot')
+
         ax = plt.gca()
+        ax.set_axis_off()
         ax.add_patch(self.plotted_data)
         plt.axis("scaled")
 
-        if self.output_type == 'show':
+        if self.output_type in ('show', 'console'):
             plt.show()
-        elif self.output_type == 'console':
-            raise NotImplementedError('Output to console is not currently supported')
         elif self.output_type == 'file':
             plt.savefig(self.output_file_path)
 
@@ -137,7 +140,8 @@ class ArgsParser:
         ellipse_parser = figure_subparser.add_parser('ellipse')
         ellipse_parser.add_argument('width', type=float, help='Width of ellipse to plot')
         ellipse_parser.add_argument('height', type=float, help='Height of ellipse to plot')
-        ellipse_parser.add_argument('--angle', type=float, help='Angle of ellipse to plot', default=0.0, required=False)
+        ellipse_parser.add_argument('--angle', type=float, help='Angle of ellipse to plot', default=0.0,
+                                    required=False)
 
     def parse(self):
         self.script_args = self.parser.parse_args()
